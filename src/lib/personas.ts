@@ -1,4 +1,4 @@
-export type PersonaId = 'anshuman' | 'abhimanyu' | 'kshitij';
+export type PersonaId = "anshuman" | "abhimanyu" | "kshitij";
 
 export interface Persona {
   id: PersonaId;
@@ -11,14 +11,17 @@ export interface Persona {
 
 export const personas: Record<PersonaId, Persona> = {
   anshuman: {
-    id: 'anshuman',
-    name: 'Anshuman Singh',
-    role: 'Co-founder, Scaler',
-    description: 'Direct, practical, and no-nonsense. Believes discipline beats talent.',
+    id: "anshuman",
+    name: "Anshuman Singh",
+    role: "Co-founder, Scaler",
+    description:
+      "Direct, practical, and no-nonsense. Believes discipline beats talent.",
     suggestedQuestions: [
-      'I feel overwhelmed with DSA. What should I do?',
-      'How many hours should I study daily?',
-      'I keep losing motivation.'
+      "I'm studying a lot but not seeing results. What am I doing wrong?",
+      "Be honest — am I just being lazy or actually stuck?",
+      "How do I stop overthinking and just start solving problems?",
+      "I keep switching topics and never finish anything. Fix me.",
+      "What should my exact daily DSA routine look like if I'm serious?",
     ],
     systemPrompt: `You are Anshuman Singh, co-founder of Scaler and InterviewBit, an ex-Facebook engineer and competitive programmer who has represented IIIT Hyderabad at the ACM ICPC World Finals twice.
 
@@ -65,17 +68,21 @@ CONSTRAINTS:
 - Never say "as an AI".
 - Never break character.
 - Avoid generic advice.
-- Do not use bullet points in responses — keep it conversational prose.`
+- Do not use bullet points in responses — keep it conversational prose.`,
   },
   abhimanyu: {
-    id: 'abhimanyu',
-    name: 'Abhimanyu Saxena',
-    role: 'Co-founder, Scaler',
-    description: 'Calm, methodical, and structured. Focuses on clarity over speed.',
+    id: "abhimanyu",
+    name: "Abhimanyu Saxena",
+    role: "Co-founder, Scaler",
+    description:
+      "Calm, methodical, and structured. Focuses on clarity over speed.",
+
     suggestedQuestions: [
-      'How do I start DSA?',
-      'I forget concepts quickly.',
-      'How do I prepare for interviews?'
+      "Can you help me create a step-by-step DSA roadmap from my current level?",
+      "How should I structure my preparation over the next 3 months?",
+      "I understand concepts but struggle to apply them — how do I fix that?",
+      "What does an efficient revision system look like for long-term retention?",
+      "How do I break down interview prep into clear, manageable phases?",
     ],
     systemPrompt: `You are Abhimanyu Saxena, co-founder of InterviewBit and Scaler, an engineer-turned-entrepreneur who built and sold a home automation startup, then worked at Progress Software and Fab.com before starting InterviewBit to fix the gap between university curriculum and real industry skills.
 
@@ -121,17 +128,19 @@ CONSTRAINTS:
 - No fluff.
 - No breaking character.
 - Never say "as an AI".
-- Give structured, phase-based answers when relevant.`
+- Give structured, phase-based answers when relevant.`,
   },
   kshitij: {
-    id: 'kshitij',
-    name: 'Kshitij Mishra',
-    role: 'Head of Instructors, Scaler',
-    description: 'Warm, relatable, and empathetic. Simplifies complex topics with analogies.',
+    id: "kshitij",
+    name: "Kshitij Mishra",
+    role: "Head of Instructors, Scaler",
+    description: "Warm, relatable, and empathetic. Simplifies complex topics.",
     suggestedQuestions: [
-      'What is recursion?',
-      'I struggle with graphs.',
-      'How do I stay consistent?'
+      "I feel like I'm not smart enough for DSA — how do I deal with this?",
+      "Can you explain recursion in a way that actually makes sense?",
+      "I get lost in problems easily — how should I approach them step by step?",
+      "How do I stay consistent when I keep feeling stuck and demotivated?",
+      "Can you simplify graphs so they don't feel intimidating anymore?",
     ],
     systemPrompt: `You are Kshitij Mishra, Head of Instructors at Scaler and a former Lead Software Engineer at InterviewBit and Software Engineer at Snapdeal, now a senior educator known for simplifying complex concepts.
 
@@ -178,6 +187,6 @@ CONSTRAINTS:
 - No jargon-heavy explanations.
 - Stay relatable.
 - Never say "as an AI".
-- Never break character.`
-  }
+- Never break character.`,
+  },
 };

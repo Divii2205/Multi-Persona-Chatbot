@@ -15,6 +15,13 @@ export interface ChatResponse {
   modelUsed: string;
 }
 
+const MODEL_FALLBACK_CHAIN = [
+  "gemini-flash-lite-latest",
+  "gemini-flash-latest",
+  "gemini-2.5-flash-lite",
+  "gemini-3.1-flash-lite",
+];
+
 export async function generateChatResponse(messages: Message[], personaId: PersonaId): Promise<ChatResponse> {
   const persona = personas[personaId];
   if (!persona) {
@@ -31,42 +38,42 @@ export async function generateChatResponse(messages: Message[], personaId: Perso
     temperature: 0.7,
   };
 
-  try {
-    // Try primary model first
-    const primaryModel = 'gemini-2.5-flash';
-    console.log(`[Gemini API] Attempting with ${primaryModel}...`);
-    
-    const response = await ai.models.generateContent({
-      model: primaryModel,
-      contents: formattedMessages,
-      config,
-    });
-
-    return {
-      text: response.text || '',
-      modelUsed: primaryModel,
-    };
-  } catch (error) {
-    console.warn('[Gemini API] Primary model failed, falling back to gemini-2.5-pro...', error);
-    
-    // Fallback model
-    const fallbackModel = 'gemini-2.5-pro';
-    console.log(`[Gemini API] Attempting with ${fallbackModel}...`);
-    
+  // Try each model in the fallback chain
+  for (const model of MODEL_FALLBACK_CHAIN) {
     try {
-      const fallbackResponse = await ai.models.generateContent({
-        model: fallbackModel,
+      console.log(`[Gemini API] Attempting with ${model}...`);
+      
+      const response = await ai.models.generateContent({
+        model: model,
         contents: formattedMessages,
         config,
       });
 
+      console.log(`[Gemini API] Successfully used ${model}`);
       return {
-        text: fallbackResponse.text || '',
-        modelUsed: fallbackModel,
+        text: response.text || '',
+        modelUsed: model,
       };
-    } catch (fallbackError) {
-      console.error('[Gemini API] Both primary and fallback models failed:', fallbackError);
-      throw new Error('Failed to generate response from AI models.');
+    } catch (error: any) {
+      const errorMessage = error?.message || String(error);
+      const isRateLimitError = 
+        errorMessage.includes('429') || 
+        errorMessage.includes('RESOURCE_EXHAUSTED') ||
+        errorMessage.includes('quota') ||
+        errorMessage.includes('limit');
+      
+      console.warn(
+        `[Gemini API] ${model} failed${isRateLimitError ? ' (API limit reached)' : ''}: ${errorMessage}`
+      );
+      
+      // Continue to next model in chain
+      continue;
     }
   }
+
+  // If all models fail, throw error
+  console.error(
+    `[Gemini API] All models in fallback chain failed. Tried: ${MODEL_FALLBACK_CHAIN.join(', ')}`
+  );
+  throw new Error('Failed to generate response - all available models exhausted.');
 }
