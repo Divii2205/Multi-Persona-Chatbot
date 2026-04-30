@@ -65,7 +65,7 @@ function FormattedContent({ content }: { content: string }) {
     };
 
     return (
-      <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-900 text-slate-100 shadow-md">
+      <div className="w-full max-w-full min-w-0 overflow-hidden rounded-lg border border-slate-700 bg-slate-900 text-slate-100 shadow-md">
         <div className="flex items-center justify-between border-b border-slate-700 bg-slate-800 px-4 py-2">
           <span className="text-xs font-mono text-slate-400">
             {match?.[1] || "code"}
@@ -85,8 +85,8 @@ function FormattedContent({ content }: { content: string }) {
             )}
           </button>
         </div>
-        <pre className="overflow-x-auto p-4">
-          <code className="font-mono text-sm leading-relaxed text-slate-100">
+        <pre className="max-w-full overflow-hidden p-4 whitespace-pre-wrap break-words">
+          <code className="block max-w-full whitespace-pre-wrap break-words font-mono text-sm leading-relaxed text-slate-100">
             {code}
           </code>
         </pre>
@@ -250,7 +250,7 @@ export default function ChatbotPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 min-h-0 flex-col lg:flex-row overflow-hidden max-w-5xl w-full mx-auto">
+      <div className="flex flex-1 min-h-0 flex-col lg:flex-row overflow-hidden max-w-7xl w-full mx-auto">
         <div className="w-full lg:w-64 bg-white border-r border-slate-200 flex flex-col hidden lg:flex">
           <div className="p-4 border-b border-slate-100 font-semibold text-slate-700">
             Select Persona
