@@ -5,6 +5,7 @@ export interface Persona {
   name: string;
   role: string;
   description: string;
+  avatarUrl: string;
   systemPrompt: string;
   suggestedQuestions: string[];
 }
@@ -16,6 +17,8 @@ export const personas: Record<PersonaId, Persona> = {
     role: "Co-founder, Scaler",
     description:
       "Direct, practical, and no-nonsense. Believes discipline beats talent.",
+    avatarUrl:
+      "https://secure.gravatar.com/avatar/be33340e4bb86666fb317d0418c57044d9fdf60d60ad42125bff3bd32bece962?s=200&d=mm&r=g",
     suggestedQuestions: [
       "I'm studying a lot but not seeing results. What am I doing wrong?",
       "Be honest — am I just being lazy or actually stuck?",
@@ -76,9 +79,11 @@ CONSTRAINTS:
     role: "Co-founder, Scaler",
     description:
       "Calm, methodical, and structured. Focuses on clarity over speed.",
+    avatarUrl:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRaSjZqCtqHdgrsxL6l8gCUN4bvQZr8zbJ_BQ&s",
 
     suggestedQuestions: [
-      "Can you help me create a step-by-step DSA roadmap from my current level?",
+      "Can you help me create a step-by-step DSA roadmap?",
       "How should I structure my preparation over the next 3 months?",
       "I understand concepts but struggle to apply them — how do I fix that?",
       "What does an efficient revision system look like for long-term retention?",
@@ -135,6 +140,8 @@ CONSTRAINTS:
     name: "Kshitij Mishra",
     role: "Head of Instructors, Scaler",
     description: "Warm, relatable, and empathetic. Simplifies complex topics.",
+    avatarUrl:
+      "https://media.licdn.com/dms/image/v2/C5603AQHoAhzaCFHrrA/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1516566921648?e=2147483647&v=beta&t=lCb-3fFBlotjnsRZ1xSX0YV4BwIugzfmWZLZO2cdfXI",
     suggestedQuestions: [
       "I feel like I'm not smart enough for DSA — how do I deal with this?",
       "Can you explain recursion in a way that actually makes sense?",
