@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { Children, isValidElement, useState, useRef, useEffect } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { personas, PersonaId } from "@/lib/personas";
 import { Message } from "@/services/gemini";
 import Image from "next/image";
 import { Send, Trash2, User, Copy, Check, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkBreaks from "remark-breaks";
+import remarkGfm from "remark-gfm";
 
 function PersonaAvatar({
   personaId,
@@ -37,126 +41,137 @@ function PersonaAvatar({
 function FormattedContent({ content }: { content: string }) {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  type TextPart = { type: "text"; content: string };
-  type CodePart = { type: "code"; content: string; language?: string };
-  type InlinePart = { type: "inline"; content: string };
-  type ContentPart = TextPart | CodePart | InlinePart;
-
-  const parseContent = (text: string): ContentPart[] => {
-    const codeBlockRegex = /```([\s\S]*?)```/g;
-    const rawParts: Array<TextPart | CodePart> = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = codeBlockRegex.exec(text)) !== null) {
-      if (match.index > lastIndex) {
-        rawParts.push({
-          type: "text",
-          content: text.slice(lastIndex, match.index),
-        });
-      }
-      const codeContent = match[1].trim();
-      const lines = codeContent.split("\n");
-      const firstLine = lines[0];
-      const langMatch = firstLine.match(/^[a-z0-9_+-]+$/);
-      const language = langMatch ? firstLine : undefined;
-      const code = language ? lines.slice(1).join("\n") : codeContent;
-      rawParts.push({ type: "code", content: code, language });
-      lastIndex = codeBlockRegex.lastIndex;
-    }
-
-    if (lastIndex < text.length) {
-      rawParts.push({ type: "text", content: text.slice(lastIndex) });
-    }
-
-    const parts: ContentPart[] = [];
-    const inlineRegex = /`([^`]+)`/g;
-
-    rawParts.forEach((p) => {
-      if (p.type === "code") {
-        parts.push({ type: "code", content: p.content, language: p.language });
-        return;
-      }
-      let last = 0;
-      let m;
-      while ((m = inlineRegex.exec(p.content)) !== null) {
-        if (m.index > last) {
-          parts.push({ type: "text", content: p.content.slice(last, m.index) });
-        }
-        parts.push({ type: "inline", content: m[1] });
-        last = inlineRegex.lastIndex;
-      }
-      if (last < p.content.length) {
-        parts.push({ type: "text", content: p.content.slice(last) });
-      }
-    });
-
-    return parts.length === 0 ? [{ type: "text", content: text }] : parts;
-  };
-
-  const handleCopyCode = (code: string, index: number) => {
-    navigator.clipboard.writeText(code);
+  const handleCopyCode = async (code: string, index: number) => {
+    await navigator.clipboard.writeText(code);
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  const parts = parseContent(content);
-  let codeBlockIndex = 0;
+  function MarkdownCodeBlock({
+    className,
+    children,
+  }: {
+    className?: string;
+    children: ReactNode;
+  }) {
+    const [codeCopied, setCodeCopied] = useState(false);
+    const match = /language-(\w+)/.exec(className || "");
+    const code = String(children).replace(/\n$/, "");
+
+    const copyCode = async () => {
+      await navigator.clipboard.writeText(code);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    };
+
+    return (
+      <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-900 text-slate-100 shadow-md">
+        <div className="flex items-center justify-between border-b border-slate-700 bg-slate-800 px-4 py-2">
+          <span className="text-xs font-mono text-slate-400">
+            {match?.[1] || "code"}
+          </span>
+          <button
+            onClick={copyCode}
+            className="flex items-center gap-1 rounded bg-slate-700 px-2 py-1 text-xs text-slate-300 transition-colors hover:bg-slate-600 hover:text-slate-100"
+          >
+            {codeCopied ? (
+              <>
+                <Check className="h-3 w-3" /> Copied
+              </>
+            ) : (
+              <>
+                <Copy className="h-3 w-3" /> Copy
+              </>
+            )}
+          </button>
+        </div>
+        <pre className="overflow-x-auto p-4">
+          <code className="font-mono text-sm leading-relaxed text-slate-100">
+            {code}
+          </code>
+        </pre>
+      </div>
+    );
+  }
+
+  const components: Components = {
+    p: ({ children }) => (
+      <p className="whitespace-pre-wrap leading-relaxed text-[15px] text-slate-800">
+        {children}
+      </p>
+    ),
+    strong: ({ children }) => (
+      <strong className="font-semibold text-slate-900">{children}</strong>
+    ),
+    em: ({ children }) => <em className="italic text-slate-800">{children}</em>,
+    a: ({ children, href }) => (
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-700"
+      >
+        {children}
+      </a>
+    ),
+    ul: ({ children }) => <ul className="list-disc space-y-1 pl-5">{children}</ul>,
+    ol: ({ children }) => <ol className="list-decimal space-y-1 pl-5">{children}</ol>,
+    li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+    h1: ({ children }) => (
+      <h1 className="text-xl font-bold text-slate-900">{children}</h1>
+    ),
+    h2: ({ children }) => (
+      <h2 className="text-lg font-bold text-slate-900">{children}</h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className="text-base font-bold text-slate-900">{children}</h3>
+    ),
+    blockquote: ({ children }) => (
+      <blockquote className="border-l-4 border-slate-300 pl-4 italic text-slate-600">
+        {children}
+      </blockquote>
+    ),
+    code: ({ className, children, ...props }) => {
+      if (!className) {
+        return (
+          <code
+            className="rounded bg-slate-100 px-1 py-0.5 font-mono text-sm text-slate-800"
+            {...props}
+          >
+            {children}
+          </code>
+        );
+      }
+
+      return (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      );
+    },
+    pre: ({ children }) => {
+      const child = Children.only(children) as ReactElement<{
+        className?: string;
+        children?: ReactNode;
+      }>;
+
+      if (isValidElement(child)) {
+        return (
+          <MarkdownCodeBlock className={child.props.className}>
+            {child.props.children}
+          </MarkdownCodeBlock>
+        );
+      }
+
+      return <>{children}</>;
+    },
+  };
 
   return (
-    <div className="space-y-2">
-      {parts.map((part, idx) => {
-        if (part.type === "text")
-          return (
-            <p
-              key={idx}
-              className="whitespace-pre-wrap leading-relaxed text-[15px]"
-            >
-              {part.content}
-            </p>
-          );
-        if (part.type === "inline")
-          return (
-            <code
-              key={idx}
-              className="bg-slate-100 text-slate-800 px-1 py-0.5 rounded font-mono text-sm"
-            >
-              {part.content}
-            </code>
-          );
-        const currentCodeIndex = codeBlockIndex++;
-        return (
-          <div
-            key={idx}
-            className="bg-slate-900 text-slate-100 rounded-lg overflow-hidden shadow-md border border-slate-700"
-          >
-            <div className="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
-              <span className="text-xs font-mono text-slate-400">
-                {part.language || "code"}
-              </span>
-              <button
-                onClick={() => handleCopyCode(part.content, currentCodeIndex)}
-                className="flex items-center gap-1 px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 transition-colors text-xs text-slate-300 hover:text-slate-100"
-              >
-                {copiedIndex === currentCodeIndex ? (
-                  <>
-                    <Check className="w-3 h-3" /> Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3 h-3" /> Copy
-                  </>
-                )}
-              </button>
-            </div>
-            <pre className="p-4 overflow-x-auto">
-              <code className="font-mono text-sm leading-relaxed">
-                {part.content}
-              </code>
-            </pre>
-          </div>
-        );
-      })}
+    <div className="space-y-3">
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={components}>
+        {content}
+      </ReactMarkdown>
     </div>
   );
 }
@@ -225,7 +240,7 @@ export default function ChatbotPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-slate-50 text-slate-900 font-sans">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-slate-50 text-slate-900 font-sans">
       <header className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-4 bg-white border-b border-slate-200 shadow-sm z-10">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-800">
@@ -235,7 +250,7 @@ export default function ChatbotPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 flex-col lg:flex-row overflow-hidden max-w-5xl w-full mx-auto">
+      <div className="flex flex-1 min-h-0 flex-col lg:flex-row overflow-hidden max-w-5xl w-full mx-auto">
         <div className="w-full lg:w-64 bg-white border-r border-slate-200 flex flex-col hidden lg:flex">
           <div className="p-4 border-b border-slate-100 font-semibold text-slate-700">
             Select Persona
@@ -269,7 +284,7 @@ export default function ChatbotPage() {
           </div>
         </div>
 
-        <main className="flex-1 flex flex-col bg-white relative">
+        <main className="flex flex-1 min-h-0 flex-col bg-white relative overflow-hidden">
           <div className="lg:hidden flex overflow-x-auto p-2 bg-slate-50 border-b border-slate-200 space-x-2">
             {Object.values(personas).map((persona) => (
               <button
@@ -329,7 +344,7 @@ export default function ChatbotPage() {
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-6">
             <AnimatePresence mode="popLayout">
               {messages.length === 0 ? (
                 <motion.div

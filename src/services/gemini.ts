@@ -16,10 +16,11 @@ export interface ChatResponse {
 }
 
 const MODEL_FALLBACK_CHAIN = [
-  "gemini-flash-lite-latest",
-  "gemini-flash-latest",
+  "gemini-2.5-flash",
   "gemini-2.5-flash-lite",
   "gemini-3.1-flash-lite",
+  "gemini-flash-lite-latest",
+  "gemini-flash-latest",
 ];
 
 export async function generateChatResponse(messages: Message[], personaId: PersonaId): Promise<ChatResponse> {
